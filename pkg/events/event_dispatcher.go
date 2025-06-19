@@ -33,3 +33,7 @@ func (eventDispatcher *EventDispatcher) Has(eventName string, handler EventHandl
 	}
 	return false
 }
+
+func (eventDispatcher *EventDispatcher) Clear() {
+	eventDispatcher.handlers = make(map[string][]EventHandlerInterface)
+}
