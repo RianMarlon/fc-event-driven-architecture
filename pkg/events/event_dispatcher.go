@@ -13,6 +13,16 @@ func NewEventDispatcher() *EventDispatcher {
 		handlers: make(map[string][]EventHandlerInterface),
 	}
 }
+
+func (eventDispatcher *EventDispatcher) Dispatch(event EventInterface) error {
+	if handlers, ok := eventDispatcher.handlers[event.GetName()]; ok {
+		for _, handler := range handlers {
+			handler.Handle(event)
+		}
+	}
+	return nil
+}
+
 func (eventDispatcher *EventDispatcher) Register(eventName string, handler EventHandlerInterface) error {
 	if eventDispatcher.Has(eventName, handler) {
 		return ErrHandlerAlreadyRegistered
