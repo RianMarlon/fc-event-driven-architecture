@@ -44,6 +44,16 @@ func (eventDispatcher *EventDispatcher) Has(eventName string, handler EventHandl
 	return false
 }
 
+func (eventDispatcher *EventDispatcher) Remove(eventName string, handler EventHandlerInterface) error {
+	for i, h := range eventDispatcher.handlers[eventName] {
+		if h == handler {
+			eventDispatcher.handlers[eventName] = append(eventDispatcher.handlers[eventName][:i], eventDispatcher.handlers[eventName][i+1:]...)
+			return nil
+		}
+	}
+	return errors.New("handler not registered")
+}
+
 func (eventDispatcher *EventDispatcher) Clear() {
 	eventDispatcher.handlers = make(map[string][]EventHandlerInterface)
 }
