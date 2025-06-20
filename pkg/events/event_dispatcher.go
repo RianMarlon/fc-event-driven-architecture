@@ -65,6 +65,7 @@ func (eventDispatcher *EventDispatcher) Remove(eventName string, handler EventHa
 	return errors.New("handler not registered")
 }
 
-func (eventDispatcher *EventDispatcher) Clear() {
+func (eventDispatcher *EventDispatcher) Clear() error {
 	eventDispatcher.handlers = make(map[string][]EventHandlerInterface)
+	return nil
 }
