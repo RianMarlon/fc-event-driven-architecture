@@ -2,6 +2,7 @@ package database
 
 import (
 	"database/sql"
+	"fmt"
 	"walletcore/internal/entity"
 )
 
@@ -14,6 +15,7 @@ func NewClientDB(db *sql.DB) *ClientDB {
 }
 
 func (c *ClientDB) Get(id string) (*entity.Client, error) {
+	fmt.Printf("id: %s\n", id)
 	client := &entity.Client{}
 	stmt, err := c.DB.Prepare("SELECT id, name, email, created_at FROM clients where id = ?")
 	if err != nil {
@@ -21,7 +23,7 @@ func (c *ClientDB) Get(id string) (*entity.Client, error) {
 	}
 	defer stmt.Close()
 	row := stmt.QueryRow(id)
-	if err := row.Scan(&client.ID, &client.Name, &client.Email, &client.CreatedAt); err != nil {
+	if err = row.Scan(&client.ID, &client.Name, &client.Email, &client.CreatedAt); err != nil {
 		return nil, err
 	}
 	return client, nil
