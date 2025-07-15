@@ -18,5 +18,5 @@ func NewTransactionCreatedKafkaHandler(kafka *kafka.Producer) *TransactionCreate
 
 func (h *TransactionCreatedKafkaHandler) Handle(message events.EventInterface) {
 	h.Kafka.Publish(message, nil, "transactions")
-	fmt.Println("TransactionCreatedKafkaHandler: ", message)
+	fmt.Println("TransactionCreatedKafkaHandler: ", message.GetPayload())
 }
