@@ -6,14 +6,17 @@ import (
 	"log"
 	"walletcore/internal/database"
 	event "walletcore/internal/events"
+	"walletcore/internal/events/handler"
 	createaccount "walletcore/internal/usecase/create_account"
 	createclient "walletcore/internal/usecase/create_client"
 	createtransaction "walletcore/internal/usecase/create_transaction"
 	"walletcore/internal/web"
 	"walletcore/internal/web/webserver"
 	"walletcore/pkg/events"
+	"walletcore/pkg/kafka"
 	"walletcore/pkg/unit_of_work"
 
+	ckafka "github.com/confluentinc/confluent-kafka-go/kafka"
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -24,9 +27,15 @@ func main() {
 		panic(err)
 	}
 
+	configMap := ckafka.ConfigMap{
+		"bootstrap.servers": "kafka:9094",
+		"group.id":          "wallet",
+	}
+	kafkaProducer := kafka.NewKafkaProducer(&configMap)
+
 	eventDispatcher := events.NewEventDispatcher()
+	eventDispatcher.Register("TransactionCreated", handler.NewTransactionCreatedKafkaHandler(kafkaProducer))
 	transactionCreatedEvent := event.NewTransactionCreated()
-	// eventDispatcher.Register("TransactionCreated", handler)
 
 	clientDb := database.NewClientDB(db)
 	accountDb := database.NewAccountDB(db)
