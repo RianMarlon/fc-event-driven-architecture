@@ -72,10 +72,11 @@ func TestCreateTransactionUseCase_Execute(t *testing.T) {
 		Amount:        100,
 	}
 	dispatcher := events.NewEventDispatcher()
-	event := event.NewTransactionCreated()
+	transactionCreated := event.NewTransactionCreated()
+	balanceUpdated := event.NewBalanceUpdated()
 
 	ctx := context.Background()
-	uc := NewCreateTransactionUseCase(mockUnitOfWork, dispatcher, event)
+	uc := NewCreateTransactionUseCase(mockUnitOfWork, dispatcher, transactionCreated, balanceUpdated)
 	output, err := uc.Execute(ctx, inputDto)
 	assert.Nil(t, err)
 	assert.NotNil(t, output)
