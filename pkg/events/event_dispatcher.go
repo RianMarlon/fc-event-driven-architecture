@@ -19,15 +19,10 @@ func NewEventDispatcher() *EventDispatcher {
 
 func (eventDispatcher *EventDispatcher) Dispatch(event EventInterface) error {
 	if handlers, ok := eventDispatcher.handlers[event.GetName()]; ok {
-		maxWorkers := len(handlers)
 		wg := sync.WaitGroup{}
-		wg.Add(maxWorkers)
 		for _, handler := range handlers {
-			go func() {
-				handler.Handle(event)
-				defer wg.Done()
-
-			}()
+			wg.Add(1)
+			go handler.Handle(event, &wg)
 		}
 		wg.Wait()
 	}
