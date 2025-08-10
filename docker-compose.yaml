@@ -13,6 +13,7 @@ services:
     command: >
       sh -c "
         migrate -path ./migrations -database 'mysql://root:root@tcp(walletcore-database:3306)/wallet?parseTime=true' up &&
+        migrate -path ./seeds -database 'mysql://root:root@tcp(walletcore-database:3306)/wallet?parseTime=true' up &&
         go run cmd/walletcore/main.go
       "
     restart: unless-stopped
