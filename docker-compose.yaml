@@ -5,6 +5,17 @@ services:
       - ./walletcore:/app
     ports:
       - 8080:8080
+    depends_on:
+      walletcore-database:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    command: >
+      sh -c "
+        migrate -path ./migrations -database 'mysql://root:root@tcp(walletcore-database:3306)/wallet?parseTime=true' up &&
+        go run cmd/walletcore/main.go
+      "
+    restart: unless-stopped
 
   walletcore-database:
     image: mysql:5.7
@@ -17,7 +28,13 @@ services:
       - 3306:3306
     volumes:
       - .docker/mysql:/var/lib/mysql
-    network_mode: host
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
   
   zookeeper:
     image: "confluentinc/cp-zookeeper:6.1.0"
@@ -28,12 +45,20 @@ services:
       TZ: Sao_Paulo/Brazil
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
+    healthcheck:
+      test: ["CMD", "pgrep", "-f", "zookeeper"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
 
   kafka:
     image: "confluentinc/cp-enterprise-kafka:6.1.0"
     container_name: kafka
     depends_on:
-      - zookeeper
+      zookeeper:
+        condition: service_healthy
     ports:
       - 9092:9092
     environment:
@@ -49,13 +74,20 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 100
       CONFLUENT_METRICS_ENABLE: 'false'
-    network_mode: host
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-topics --bootstrap-server localhost:9092 --list"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 45s
+    restart: unless-stopped
 
   control-center:
     image: confluentinc/cp-enterprise-control-center:6.1.0
     container_name: control-center
     depends_on:
-      - kafka
+      kafka:
+        condition: service_healthy
     ports:
       - "9021:9021"
     environment:
@@ -70,3 +102,4 @@ services:
       CONTROL_CENTER_METRICS_TOPIC_REPLICATION: 1
       CONTROL_CENTER_MONITORING_INTERCEPTOR_TOPIC_REPLICATION: 1
       CONTROL_CENTER_INTERNAL_TOPICS_REPLICATION: 1
+    restart: unless-stopped
