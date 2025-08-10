@@ -19,7 +19,7 @@ services:
     restart: unless-stopped
 
   walletcore-database:
-    image: mysql:5.7
+    image: mysql:8.4
     platform: linux/amd64
     environment:
       MYSQL_ROOT_PASSWORD: root
@@ -36,7 +36,35 @@ services:
       retries: 5
       start_period: 30s
     restart: unless-stopped
+
+  balance-ms:
+    build: ./balance-ms
+    volumes:
+      - ./balance-ms:/app
+    ports:
+      - 3003:3003
+    depends_on:
+      balance-ms-database:
+        condition: service_healthy
   
+  balance-ms-database:
+    image: postgres:17.4
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: balance
+    ports:
+      - 5432:5432
+    volumes:
+      - .docker/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U root -d balance"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
   zookeeper:
     image: "confluentinc/cp-zookeeper:6.1.0"
     container_name: zookeeper
