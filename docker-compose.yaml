@@ -1,12 +1,12 @@
 services:
-  goapp:
-    build: .
+  walletcore-app:
+    build: ./walletcore
     volumes:
-      - .:/app
+      - ./walletcore:/app
     ports:
       - 8080:8080
 
-  mysql:
+  walletcore-database:
     image: mysql:5.7
     platform: linux/amd64
     environment:
@@ -17,6 +17,7 @@ services:
       - 3306:3306
     volumes:
       - .docker/mysql:/var/lib/mysql
+    network_mode: host
   
   zookeeper:
     image: "confluentinc/cp-zookeeper:6.1.0"
@@ -48,6 +49,7 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 100
       CONFLUENT_METRICS_ENABLE: 'false'
+    network_mode: host
 
   control-center:
     image: confluentinc/cp-enterprise-control-center:6.1.0

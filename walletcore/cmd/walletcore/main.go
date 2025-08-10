@@ -21,14 +21,14 @@ import (
 )
 
 func main() {
-	db, err := sql.Open("mysql", "root:root@tcp(mysql:3306)/wallet?parseTime=true")
+	db, err := sql.Open("mysql", "root:root@tcp(localhost:3306)/wallet?parseTime=true")
 	if err != nil {
 		log.Fatal(err)
 		panic(err)
 	}
 
 	configMap := ckafka.ConfigMap{
-		"bootstrap.servers": "kafka:29092",
+		"bootstrap.servers": "localhost:9092",
 		"group.id":          "wallet",
 	}
 	kafkaProducer := kafka.NewKafkaProducer(&configMap)
