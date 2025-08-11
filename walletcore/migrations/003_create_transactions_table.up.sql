@@ -1,9 +1,9 @@
 CREATE TABLE IF NOT EXISTS transactions (
-    id VARCHAR(36) NOT NULL PRIMARY KEY,
-    account_id_from VARCHAR(36) NOT NULL,
-    account_id_to VARCHAR(36) NOT NULL,
-    amount DECIMAL(10,2) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (account_id_from) REFERENCES accounts(id) ON DELETE CASCADE,
-    FOREIGN KEY (account_id_to) REFERENCES accounts(id) ON DELETE CASCADE
+  id VARCHAR(36) NOT NULL PRIMARY KEY,
+  account_id_from VARCHAR(36) NOT NULL,
+  account_id_to VARCHAR(36) NOT NULL,
+  amount DECIMAL(10,2) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (account_id_from) REFERENCES accounts(id) ON DELETE CASCADE,
+  FOREIGN KEY (account_id_to) REFERENCES accounts(id) ON DELETE CASCADE
 ); 
