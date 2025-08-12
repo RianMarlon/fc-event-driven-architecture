@@ -14,7 +14,7 @@ services:
       sh -c "
         migrate -path ./migrations -database 'mysql://root:root@tcp(walletcore-database:3306)/wallet?parseTime=true' up &&
         migrate -path ./seeds -database 'mysql://root:root@tcp(walletcore-database:3306)/wallet?parseTime=true' up &&
-        go run cmd/walletcore/main.go
+        go run cmd/main.go
       "
     restart: unless-stopped
 
@@ -46,6 +46,12 @@ services:
     depends_on:
       balance-ms-database:
         condition: service_healthy
+    command: >
+      sh -c "
+        migrate -path ./migrations -database 'postgres://root:root@balance-ms-database:5432/balance?sslmode=disable' up &&
+        migrate -path ./seeds -database 'postgres://root:root@balance-ms-database:5432/balance?sslmode=disable' up &&
+        go run cmd/main.go
+      "
   
   balance-ms-database:
     image: postgres:17.4

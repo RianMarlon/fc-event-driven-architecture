@@ -1,7 +1,12 @@
 FROM golang:1.23
 WORKDIR /app
 
-COPY go.mod ./
+RUN apt-get update && apt-get install -y librdkafka-dev
+
+# Install migrate with PostgreSQL driver
+RUN go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+
+COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
