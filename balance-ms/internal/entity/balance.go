@@ -28,17 +28,11 @@ func NewBalance(accountID string, amount float64) (*Balance, error) {
 	}, nil
 }
 
-func (b *Balance) Credit(amount float64) error {
-	b.Amount += amount
-	b.UpdatedAt = time.Now()
-	return nil
-}
-
-func (b *Balance) Debit(amount float64) error {
-	if b.Amount < amount {
-		return errors.New("insufficient balance")
+func (b *Balance) UpdateBalance(amount float64) error {
+	if amount < 0 {
+		return errors.New("amount cannot be negative")
 	}
-	b.Amount -= amount
+	b.Amount = amount
 	b.UpdatedAt = time.Now()
 	return nil
 }

@@ -24,32 +24,22 @@ func TestNewBalanceNegativeAmount(t *testing.T) {
 	assert.Equal(t, "amount cannot be negative", err.Error())
 }
 
-func TestBalanceCredit(t *testing.T) {
+func TestBalanceUpdateBalance(t *testing.T) {
 	balance, err := NewBalance("123", 100.0)
 	assert.Nil(t, err)
 	assert.NotNil(t, balance)
 	assert.Equal(t, 100.0, balance.Amount)
-	err = balance.Credit(50.0)
-	assert.Nil(t, err)
-	assert.Equal(t, 150.0, balance.Amount)
-}
-
-func TestBalanceDebit(t *testing.T) {
-	balance, err := NewBalance("123", 100.0)
-	assert.Nil(t, err)
-	assert.NotNil(t, balance)
-	assert.Equal(t, 100.0, balance.Amount)
-	err = balance.Debit(50.0)
+	err = balance.UpdateBalance(50.0)
 	assert.Nil(t, err)
 	assert.Equal(t, 50.0, balance.Amount)
 }
 
-func TestBalanceDebitInsufficientBalance(t *testing.T) {
+func TestBalanceUpdateBalanceNegativeAmount(t *testing.T) {
 	balance, err := NewBalance("123", 100.0)
 	assert.Nil(t, err)
 	assert.NotNil(t, balance)
 	assert.Equal(t, 100.0, balance.Amount)
-	err = balance.Debit(150.0)
+	err = balance.UpdateBalance(-50.0)
 	assert.Error(t, err)
-	assert.Equal(t, "insufficient balance", err.Error())
+	assert.Equal(t, "amount cannot be negative", err.Error())
 }

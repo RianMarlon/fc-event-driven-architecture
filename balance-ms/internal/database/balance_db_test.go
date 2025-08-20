@@ -82,7 +82,7 @@ func (s *BalanceDBTestSuite) TestUpdate() {
 	_, err = stmt.Exec(balance.ID, balance.AccountID, balance.Amount, balance.CreatedAt, balance.UpdatedAt)
 	s.Require().NoError(err)
 
-	balance.Credit(300)
+	balance.UpdateBalance(300)
 
 	err = s.BalanceDB.Update(balance)
 	s.Require().NoError(err)
