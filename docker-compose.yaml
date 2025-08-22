@@ -10,13 +10,28 @@ services:
         condition: service_healthy
       kafka:
         condition: service_healthy
+      walletcore-migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  walletcore-migrate:
+    build: ./walletcore
+    volumes:
+      - ./walletcore:/app
+    depends_on:
+      walletcore-database:
+        condition: service_healthy
     command: >
       sh -c "
-        migrate -path ./migrations -database 'mysql://root:root@tcp(walletcore-database:3306)/wallet?parseTime=true' up &&
-        migrate -path ./seeds -database 'mysql://root:root@tcp(walletcore-database:3306)/wallet?parseTime=true' up &&
-        go run cmd/main.go
+        echo 'Creating temporary migration folder...' &&
+        mkdir -p /tmp/all-migrations &&
+        cp -r ./migrations/* /tmp/all-migrations/ &&
+        cp -r ./seeds/* /tmp/all-migrations/ &&
+        echo 'Running all migrations and seeds...' &&
+        migrate -path /tmp/all-migrations -database 'mysql://root:root@tcp(walletcore-database:3306)/wallet?parseTime=true' up &&
+        echo 'All completed successfully'
       "
-    restart: unless-stopped
+    restart: "no"
 
   walletcore-database:
     image: mysql:8.4
@@ -30,11 +45,11 @@ services:
     volumes:
       - .docker/mysql:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
+      test: ["CMD-SHELL", "mysql -uroot -proot -e 'SELECT 1' wallet"]
       interval: 10s
       timeout: 5s
-      retries: 5
-      start_period: 30s
+      retries: 10
+      start_period: 20s
     restart: unless-stopped
 
   balance-ms:
@@ -46,13 +61,31 @@ services:
     depends_on:
       balance-ms-database:
         condition: service_healthy
+      kafka:
+        condition: service_healthy
+      balance-ms-migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  balance-ms-migrate:
+    build: ./balance-ms
+    volumes:
+      - ./balance-ms:/app
+    depends_on:
+      balance-ms-database:
+        condition: service_healthy
     command: >
       sh -c "
-        migrate -path ./migrations -database 'postgres://root:root@balance-ms-database:5432/balance?sslmode=disable' up &&
-        migrate -path ./seeds -database 'postgres://root:root@balance-ms-database:5432/balance?sslmode=disable' up &&
-        go run cmd/main.go
+        echo 'Creating temporary migration folder...' &&
+        mkdir -p /tmp/all-migrations &&
+        cp -r ./migrations/* /tmp/all-migrations/ &&
+        cp -r ./seeds/* /tmp/all-migrations/ &&
+        echo 'Running all migrations and seeds...' &&
+        migrate -path /tmp/all-migrations -database 'postgres://root:root@balance-ms-database:5432/balance?sslmode=disable' up &&
+        echo 'All completed successfully'
       "
-  
+    restart: "no"
+
   balance-ms-database:
     image: postgres:17.4
     environment:
@@ -64,11 +97,11 @@ services:
     volumes:
       - .docker/postgres:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U root -d balance"]
+      test: ["CMD-SHELL", "pg_isready -U root -d balance && psql -U root -d balance -c 'SELECT 1'"]
       interval: 10s
       timeout: 5s
-      retries: 5
-      start_period: 30s
+      retries: 10
+      start_period: 20s
     restart: unless-stopped
 
   zookeeper:
@@ -77,11 +110,11 @@ services:
     ports:
       - 2181:2181
     environment:
-      TZ: Sao_Paulo/Brazil
+      TZ: America/Sao_Paulo 
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
     healthcheck:
-      test: ["CMD", "pgrep", "-f", "zookeeper"]
+      test: ["CMD", "echo", "ruok", "|", "nc", "localhost", "2181", "|", "grep", "imok"] 
       interval: 10s
       timeout: 5s
       retries: 5
@@ -97,7 +130,7 @@ services:
     ports:
       - 9092:9092
     environment:
-      TZ: Sao_Paulo/Brazil
+      TZ: America/Sao_Paulo
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
@@ -107,14 +140,14 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
-      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 100
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 3000
       CONFLUENT_METRICS_ENABLE: 'false'
     healthcheck:
-      test: ["CMD-SHELL", "kafka-topics --bootstrap-server localhost:9092 --list"]
-      interval: 15s
-      timeout: 10s
-      retries: 5
-      start_period: 45s
+      test: ["CMD-SHELL", "kafka-broker-api-versions --bootstrap-server localhost:9092"]
+      interval: 30s
+      timeout: 15s
+      retries: 10
+      start_period: 60s
     restart: unless-stopped
 
   control-center:
@@ -137,4 +170,10 @@ services:
       CONTROL_CENTER_METRICS_TOPIC_REPLICATION: 1
       CONTROL_CENTER_MONITORING_INTERCEPTOR_TOPIC_REPLICATION: 1
       CONTROL_CENTER_INTERNAL_TOPICS_REPLICATION: 1
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9021/health"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
     restart: unless-stopped
