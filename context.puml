@@ -1,7 +1,7 @@
 @startuml C4_Elements
 !include  https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
 
-title "Digital Wallet Full Cycle"
+title "Digital Wallet Full Cycle - Context Diagram"
 Person(client, "Client", "Digital Wallet User")
 System(wallet, "Digital Wallet System", "FC Digital Wallet")
 
@@ -9,11 +9,15 @@ System_Ext(secret_manager, "Secret Manager", "Credentials Manager")
 System_Ext(apm, "APM", "Application Performance Monitoring")
 System_Ext(collect, "OTEL", "Open Telemetry Collector")
 System_Ext(payment_gateway, "Payment Gateway", "Payment Processor")
+System_Ext(kafka, "Apache Kafka", "Event Streaming Platform")
+System_Ext(zookeeper, "Zookeeper", "Kafka Coordination Service")
 
 Rel(client, wallet, "Uses", "HTTPS")
 Rel(wallet, secret_manager, "Uses", "HTTPS")
 Rel(wallet, apm, "Uses", "HTTPS")
 Rel(wallet, collect, "Uses", "HTTPS")
 Rel(wallet, payment_gateway, "Uses", "HTTPS")
+Rel(wallet, kafka, "Publishes Events", "Async")
+Rel(kafka, zookeeper, "Coordinates", "TCP")
 
 @enduml
