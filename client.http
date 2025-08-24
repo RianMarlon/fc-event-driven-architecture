@@ -1,0 +1,30 @@
+### Criar client
+POST http://localhost:8080/clients
+Content-Type: application/json
+
+{
+    "name": "Teste 2",
+    "email": "teste@teste.com"
+}
+
+### Criar account
+POST http://localhost:8080/accounts
+Content-Type: application/json
+
+{
+    "client_id": "660e8400-e29b-41d4-a716-446655440001"
+}
+
+### Criar transação
+POST http://localhost:8080/transactions
+Content-Type: application/json
+
+{
+    "account_id_from": "660e8400-e29b-41d4-a716-446655440001",
+    "account_id_to": "660e8400-e29b-41d4-a716-446655440002",
+    "amount": 1
+}
+
+### Consultar balance da conta
+GET http://localhost:3003/balances/660e8400-e29b-41d4-a716-446655440002
+Content-Type: application/json
