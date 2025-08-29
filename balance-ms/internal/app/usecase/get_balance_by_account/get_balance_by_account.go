@@ -1,8 +1,9 @@
 package usecase
 
 import (
-	"balance-ms/internal/gateway"
 	"errors"
+
+	"balance-ms/internal/domain/repository"
 )
 
 type GetBalanceByAccountInputDTO struct {
@@ -15,17 +16,17 @@ type GetBalanceByAccountOutputDTO struct {
 }
 
 type GetBalanceByAccountUsecase struct {
-	BalanceGateway gateway.BalanceGateway
+	BalanceRepository repository.BalanceRepository
 }
 
-func NewGetBalanceByAccountUsecase(balanceGateway gateway.BalanceGateway) *GetBalanceByAccountUsecase {
+func NewGetBalanceByAccountUsecase(balanceRepository repository.BalanceRepository) *GetBalanceByAccountUsecase {
 	return &GetBalanceByAccountUsecase{
-		BalanceGateway: balanceGateway,
+		BalanceRepository: balanceRepository,
 	}
 }
 
 func (u *GetBalanceByAccountUsecase) Execute(input GetBalanceByAccountInputDTO) (*GetBalanceByAccountOutputDTO, error) {
-	balance := u.BalanceGateway.GetByAccountID(input.AccountID)
+	balance := u.BalanceRepository.GetByAccountID(input.AccountID)
 	if balance == nil {
 		return nil, errors.New("balance not found")
 	}

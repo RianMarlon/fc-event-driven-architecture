@@ -1,12 +1,12 @@
 package usecase
 
 import (
-	"balance-ms/internal/entity"
-	"balance-ms/internal/gateway"
+	"balance-ms/internal/domain/entity"
+	"balance-ms/internal/domain/repository"
 )
 
 type UpdateAccountsBalanceUseCase struct {
-	BalanceGateway gateway.BalanceGateway
+	BalanceRepository repository.BalanceRepository
 }
 
 type UpdateAccountsBalanceInput struct {
@@ -21,8 +21,8 @@ type CreateBalanceInput struct {
 	Balance   float64
 }
 
-func NewUpdateAccountsBalanceUseCase(balanceGateway gateway.BalanceGateway) *UpdateAccountsBalanceUseCase {
-	return &UpdateAccountsBalanceUseCase{BalanceGateway: balanceGateway}
+func NewUpdateAccountsBalanceUseCase(balanceRepository repository.BalanceRepository) *UpdateAccountsBalanceUseCase {
+	return &UpdateAccountsBalanceUseCase{BalanceRepository: balanceRepository}
 }
 
 func (u *UpdateAccountsBalanceUseCase) Execute(input UpdateAccountsBalanceInput) error {
@@ -45,20 +45,20 @@ func (u *UpdateAccountsBalanceUseCase) Execute(input UpdateAccountsBalanceInput)
 }
 
 func (u *UpdateAccountsBalanceUseCase) createOrUpdateBalance(input CreateBalanceInput) error {
-	balanceExists := u.BalanceGateway.GetByAccountID(input.AccountID)
+	balanceExists := u.BalanceRepository.GetByAccountID(input.AccountID)
 	if balanceExists == nil {
 		balance, err := entity.NewBalance(input.AccountID, input.Balance)
 		if err != nil {
 			return err
 		}
-		err = u.BalanceGateway.Create(balance)
+		err = u.BalanceRepository.Create(balance)
 		if err != nil {
 			return err
 		}
 		return nil
 	}
 	balanceExists.UpdateBalance(input.Balance)
-	err := u.BalanceGateway.Update(balanceExists)
+	err := u.BalanceRepository.Update(balanceExists)
 	if err != nil {
 		return err
 	}

@@ -1,7 +1,7 @@
 package usecase
 
 import (
-	"balance-ms/internal/entity"
+	"balance-ms/internal/domain/entity"
 	"testing"
 
 	"github.com/stretchr/testify/assert"

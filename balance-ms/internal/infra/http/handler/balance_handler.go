@@ -1,22 +1,22 @@
-package web
+package http_handler
 
 import (
-	usecase "balance-ms/internal/usecase/get_balance_by_account"
+	usecase "balance-ms/internal/app/usecase/get_balance_by_account"
 	"encoding/json"
 	"net/http"
 
 	"github.com/go-chi/chi"
 )
 
-type WebBalanceHandler struct {
+type HttpBalanceHandler struct {
 	GetBalanceByAccountUseCase usecase.GetBalanceByAccountUsecase
 }
 
-func NewWebBalanceHandler(getBalanceByAccountUseCase usecase.GetBalanceByAccountUsecase) *WebBalanceHandler {
-	return &WebBalanceHandler{GetBalanceByAccountUseCase: getBalanceByAccountUseCase}
+func NewHttpBalanceHandler(getBalanceByAccountUseCase usecase.GetBalanceByAccountUsecase) *HttpBalanceHandler {
+	return &HttpBalanceHandler{GetBalanceByAccountUseCase: getBalanceByAccountUseCase}
 }
 
-func (h *WebBalanceHandler) GetBalanceByAccount(w http.ResponseWriter, r *http.Request) {
+func (h *HttpBalanceHandler) GetBalanceByAccount(w http.ResponseWriter, r *http.Request) {
 	accountID := chi.URLParam(r, "account_id")
 	balance, err := h.GetBalanceByAccountUseCase.Execute(usecase.GetBalanceByAccountInputDTO{AccountID: accountID})
 	if err != nil {

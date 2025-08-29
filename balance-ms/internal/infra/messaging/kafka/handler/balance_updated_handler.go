@@ -1,7 +1,7 @@
-package handler
+package kafka_handler
 
 import (
-	usecase "balance-ms/internal/usecase/update_accounts_balance"
+	usecase "balance-ms/internal/app/usecase/update_accounts_balance"
 	"balance-ms/pkg/events"
 	"encoding/json"
 	"fmt"

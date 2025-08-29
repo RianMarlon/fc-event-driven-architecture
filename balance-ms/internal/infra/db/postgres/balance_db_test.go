@@ -1,7 +1,7 @@
 package database
 
 import (
-	"balance-ms/internal/entity"
+	"balance-ms/internal/domain/entity"
 	"database/sql"
 	"testing"
 	"time"
@@ -13,7 +13,7 @@ import (
 type BalanceDBTestSuite struct {
 	suite.Suite
 	DB        *sql.DB
-	BalanceDB *BalanceDB
+	BalanceDB *BalanceRepositoryDB
 }
 
 func (s *BalanceDBTestSuite) SetupTest() {
@@ -33,7 +33,7 @@ func (s *BalanceDBTestSuite) SetupTest() {
 	`)
 	s.Require().NoError(err)
 
-	s.BalanceDB = &BalanceDB{DB: s.DB}
+	s.BalanceDB = &BalanceRepositoryDB{DB: s.DB}
 }
 
 func (s *BalanceDBTestSuite) TearDownTest() {

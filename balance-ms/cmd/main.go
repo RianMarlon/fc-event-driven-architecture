@@ -1,13 +1,13 @@
 package main
 
 import (
-	"balance-ms/internal/database"
-	"balance-ms/internal/event"
-	"balance-ms/internal/event/handler"
-	getBalanceByAccountUsecase "balance-ms/internal/usecase/get_balance_by_account"
-	updateAccountsBalanceUsecase "balance-ms/internal/usecase/update_accounts_balance"
-	"balance-ms/internal/web"
-	"balance-ms/internal/web/webserver"
+	getBalanceByAccountUsecase "balance-ms/internal/app/usecase/get_balance_by_account"
+	updateAccountsBalanceUsecase "balance-ms/internal/app/usecase/update_accounts_balance"
+	event "balance-ms/internal/domain/event"
+	database "balance-ms/internal/infra/db/postgres"
+	httpserver "balance-ms/internal/infra/http"
+	web "balance-ms/internal/infra/http/handler"
+	kafka_handler "balance-ms/internal/infra/messaging/kafka/handler"
 	"balance-ms/pkg/events"
 	"balance-ms/pkg/kafka"
 	"database/sql"
@@ -33,20 +33,20 @@ func main() {
 
 	eventDispatcher := events.NewEventDispatcher()
 
-	balanceGateway := database.NewBalanceDB(db)
+	balanceGateway := database.NewBalanceRepositoryDB(db)
 	updateAccountsBalanceUseCase := updateAccountsBalanceUsecase.NewUpdateAccountsBalanceUseCase(balanceGateway)
 	getBalanceByAccountUseCase := getBalanceByAccountUsecase.NewGetBalanceByAccountUsecase(balanceGateway)
 
-	server := webserver.NewWebServer(":3003")
-	balanceHandler := web.NewWebBalanceHandler(*getBalanceByAccountUseCase)
-	server.AddHandler(webserver.Handler{
+	server := httpserver.NewWebServer(":3003")
+	balanceHandler := web.NewHttpBalanceHandler(*getBalanceByAccountUseCase)
+	server.AddHandler(httpserver.Handler{
 		Path:        "/balances/{account_id}",
 		Method:      "GET",
 		HandlerFunc: balanceHandler.GetBalanceByAccount,
 	})
 	go server.Start()
 
-	eventDispatcher.Register("BalanceUpdated", handler.NewBalanceUpdatedKafkaHandler(*updateAccountsBalanceUseCase))
+	eventDispatcher.Register("BalanceUpdated", kafka_handler.NewBalanceUpdatedKafkaHandler(*updateAccountsBalanceUseCase))
 	go kafkaConsumer.Consume(msgChan)
 
 	for msg := range msgChan {
